@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Business Lead Finder</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f7fb;
+            color: #1f2937;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1500px;
+            margin: 30px auto;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 25px;
+        }
+
+        .search-box {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+
+        .search-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        input[type="number"] {
+            width: 120px;
+        }
+
+        button {
+            border: none;
+            padding: 12px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .search-btn {
+            background: #2563eb;
+            color: white;
+        }
+
+        .search-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .clear-btn {
+            background: #dc2626;
+            color: white;
+        }
+
+        .export-btn {
+            background: #059669;
+            color: white;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* FILTERS */
+
+        .filters {
+            margin-top: 18px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .filter-label:hover {
+            background: #f1f5f9;
+        }
+
+        .filter-label input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .filter-info {
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        /* PROGRESS */
+
+        .progress-box {
+            display: none;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .progress-stage {
+            font-weight: 600;
+        }
+
+        .progress-message {
+            color: #6b7280;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 10px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: #2563eb;
+            transition: width 0.3s ease;
+        }
+
+        /* SUMMARY */
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+
+        .summary-card .label {
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        .summary-card .value {
+            font-size: 25px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        /* TABLE */
+
+        .table-box {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 18px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .table-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .filter-count {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1200px;
+        }
+
+        th {
+            background: #f8fafc;
+            text-align: left;
+            padding: 13px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 13px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+            vertical-align: top;
+        }
+
+        tr:hover {
+            background: #fafafa;
+        }
+
+        .business-name {
+            font-weight: 600;
+            min-width: 180px;
+        }
+
+        .address {
+            min-width: 260px;
+            max-width: 350px;
+            color: #4b5563;
+        }
+
+        .website-no {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        .website-yes {
+            color: #059669;
+            font-weight: 600;
+        }
+
+        .social-links {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .social-links a {
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        .instagram {
+            color: #db2777;
+        }
+
+        .facebook {
+            color: #2563eb;
+        }
+
+        .linkedin {
+            color: #0a66c2;
+        }
+
+        .no-social {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        .phone {
+            white-space: nowrap;
+        }
+
+        .source-link {
+            color: #2563eb;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+
+        @media (max-width: 900px) {
+            .summary {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .summary {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🔎 Business Lead Finder</h1>
+
+    <div class="subtitle">
+        Find local businesses using Google Maps and enrich their contact information.
+    </div>
+
+    <!-- SEARCH -->
+    <div class="search-box">
+
+        <form id="searchForm">
+
+            {% csrf_token %}
+
+            <div class="search-row">
+
+                <input
+                    type="text"
+                    id="context"
+                    name="context"
+                    placeholder="Example: Salons in Noida"
+                    required
+                >
+
+                <input
+                    type="number"
+                    id="max_results"
+                    name="max_results"
+                    value="20"
+                    min="1"
+                    max="1000"
+                    title="Number of new businesses to find"
+                >
+
+                <button
+                    type="submit"
+                    class="search-btn"
+                    id="searchButton"
+                >
+                    🔎 Search
+                </button>
+
+                <button
+                    type="button"
+                    class="clear-btn"
+                    id="clearButton"
+                >
+                    🗑 Clear
+                </button>
+
+                <button
+                    type="button"
+                    class="export-btn"
+                    id="exportButton"
+                >
+                    📥 Export CSV
+                </button>
+
+            </div>
+
+        </form>
+
+        <!-- FILTERS -->
+
+        <div class="filters">
+
+            <label class="filter-label">
+                <input
+                    type="checkbox"
+                    id="noWebsiteFilter"
+                >
+                <span>🌐 Only businesses without website</span>
+            </label>
+
+            <label class="filter-label">
+                <input
+                    type="checkbox"
+                    id="noSocialFilter"
+                >
+                <span>📱 Only businesses without social media</span>
+            </label>
+
+            <span class="filter-info">
+                Filters only change what is displayed. Your database remains unchanged.
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- PROGRESS -->
+
+    <div
+        class="progress-box"
+        id="progressBox"
+    >
+
+        <div class="progress-header">
+
+            <div
+                class="progress-stage"
+                id="progressStage"
+            >
+                Preparing search...
+            </div>
+
+            <div id="progressNumbers">
+                0 / 0
+            </div>
+
+        </div>
+
+        <div class="progress-bar-bg">
+
+            <div
+                class="progress-bar"
+                id="progressBar"
+            ></div>
+
+        </div>
+
+        <div
+            class="progress-message"
+            id="progressMessage"
+        >
+            Starting...
+        </div>
+
+    </div>
+
+
+    <!-- SUMMARY -->
+
+    <div class="summary">
+
+        <div class="summary-card">
+            <div class="label">Total in Database</div>
+            <div
+                class="value"
+                id="totalDatabase"
+            >
+                {{ total_leads }}
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <div class="label">Currently Showing</div>
+            <div
+                class="value"
+                id="visibleCount"
+            >
+                {{ leads|length }}
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <div class="label">Without Website</div>
+            <div
+                class="value"
+                id="withoutWebsiteCount"
+            >
+                0
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <div class="label">Without Social Media</div>
+            <div
+                class="value"
+                id="withoutSocialCount"
+            >
+                0
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- TABLE -->
+
+    <div class="table-box">
+
+        <div class="table-header">
+
+            <div class="table-title">
+                📋 Business Leads
+            </div>
+
+            <div
+                class="filter-count"
+                id="filterCount"
+            >
+                Showing all businesses
+            </div>
+
+        </div>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>#</th>
+
+                        <th>Business</th>
+
+                        <th>Address</th>
+
+                        <th>Category</th>
+
+                        <th>Website</th>
+
+                        <th>Phone</th>
+
+                        <th>Email</th>
+
+                        <th>Social Media</th>
+
+                        <th>Source</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="leadsTableBody">
+
+                    {% for lead in leads %}
+
+                    <tr
+                        class="lead-row"
+
+                        data-has-website="{% if lead.website and lead.website != 'X' %}true{% else %}false{% endif %}"
+
+                        data-has-social="{% if lead.instagram or lead.facebook or lead.linkedin %}true{% else %}false{% endif %}"
+                    >
+
+                        <td class="row-number">
+                            {{ forloop.counter }}
+                        </td>
+
+                        <td class="business-name">
+                            {{ lead.business_name }}
+                        </td>
+
+                        <td class="address">
+                            {% if lead.location %}
+                                {{ lead.location }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if lead.category %}
+                                {{ lead.category }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+
+                        <td>
+
+                            {% if lead.website and lead.website != "X" %}
+
+                                <a
+                                    href="{{ lead.website }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="website-yes"
+                                >
+                                    🌐 Website
+                                </a>
+
+                            {% else %}
+
+                                <span class="website-no">
+                                    ❌ No Website
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td class="phone">
+
+                            {% if lead.phone %}
+                                {{ lead.phone }}
+                            {% else %}
+                                —
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            {% if lead.email %}
+                                {{ lead.email }}
+                            {% else %}
+                                —
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            {% if lead.instagram or lead.facebook or lead.linkedin %}
+
+                                <div class="social-links">
+
+                                    {% if lead.instagram %}
+                                        <a
+                                            href="{{ lead.instagram }}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="instagram"
+                                        >
+                                            Instagram
+                                        </a>
+                                    {% endif %}
+
+                                    {% if lead.facebook %}
+                                        <a
+                                            href="{{ lead.facebook }}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="facebook"
+                                        >
+                                            Facebook
+                                        </a>
+                                    {% endif %}
+
+                                    {% if lead.linkedin %}
+                                        <a
+                                            href="{{ lead.linkedin }}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="linkedin"
+                                        >
+                                            LinkedIn
+                                        </a>
+                                    {% endif %}
+
+                                </div>
+
+                            {% else %}
+
+                                <span class="no-social">
+                                    ❌ No Social
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            {% if lead.source_url %}
+
+                                <a
+                                    href="{{ lead.source_url }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="source-link"
+                                >
+                                    📍 Google Maps
+                                </a>
+
+                            {% else %}
+                                —
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr id="emptyDatabaseRow">
+
+                        <td
+                            colspan="9"
+                            class="empty-message"
+                        >
+                            No businesses found yet. Start a search.
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    /*
+    ============================================================
+    CSRF
+    ============================================================
+    */
+
+    function getCookie(name) {
+
+        let cookieValue = null;
+
+        if (document.cookie && document.cookie !== "") {
+
+            const cookies = document.cookie.split(";");
+
+            for (let cookie of cookies) {
+
+                cookie = cookie.trim();
+
+                if (cookie.substring(0, name.length + 1) === name + "=") {
+
+                    cookieValue = decodeURIComponent(
+                        cookie.substring(name.length + 1)
+                    );
+
+                    break;
+                }
+            }
+        }
+
+        return cookieValue;
+    }
+
+
+    /*
+    ============================================================
+    ELEMENTS
+    ============================================================
+    */
+
+    const searchForm =
+        document.getElementById("searchForm");
+
+    const searchButton =
+        document.getElementById("searchButton");
+
+    const clearButton =
+        document.getElementById("clearButton");
+
+    const exportButton =
+        document.getElementById("exportButton");
+
+    const progressBox =
+        document.getElementById("progressBox");
+
+    const progressStage =
+        document.getElementById("progressStage");
+
+    const progressNumbers =
+        document.getElementById("progressNumbers");
+
+    const progressBar =
+        document.getElementById("progressBar");
+
+    const progressMessage =
+        document.getElementById("progressMessage");
+
+    const noWebsiteFilter =
+        document.getElementById("noWebsiteFilter");
+
+    const noSocialFilter =
+        document.getElementById("noSocialFilter");
+
+    const visibleCount =
+        document.getElementById("visibleCount");
+
+    const withoutWebsiteCount =
+        document.getElementById("withoutWebsiteCount");
+
+    const withoutSocialCount =
+        document.getElementById("withoutSocialCount");
+
+    const filterCount =
+        document.getElementById("filterCount");
+
+    const totalDatabase =
+        document.getElementById("totalDatabase");
+
+
+    /*
+    ============================================================
+    FILTER LOGIC
+    ============================================================
+    */
+
+    function applyFilters() {
+
+        const onlyNoWebsite =
+            noWebsiteFilter.checked;
+
+        const onlyNoSocial =
+            noSocialFilter.checked;
+
+        const rows =
+            document.querySelectorAll(".lead-row");
+
+        let visible = 0;
+
+        let noWebsiteTotal = 0;
+
+        let noSocialTotal = 0;
+
+
+        rows.forEach(function(row) {
+
+            const hasWebsite =
+                row.dataset.hasWebsite === "true";
+
+            const hasSocial =
+                row.dataset.hasSocial === "true";
+
+
+            /*
+            Count overall database stats
+            */
+
+            if (!hasWebsite) {
+                noWebsiteTotal++;
+            }
+
+            if (!hasSocial) {
+                noSocialTotal++;
+            }
+
+
+            /*
+            Check website filter
+            */
+
+            let showRow = true;
+
+            if (onlyNoWebsite && hasWebsite) {
+                showRow = false;
+            }
+
+
+            /*
+            Check social filter
+            */
+
+            if (onlyNoSocial && hasSocial) {
+                showRow = false;
+            }
+
+
+            /*
+            Show / hide
+            */
+
+            if (showRow) {
+
+                row.style.display = "";
+
+                visible++;
+
+            } else {
+
+                row.style.display = "none";
+
+            }
+
+        });
+
+
+        /*
+        Update counters
+        */
+
+        visibleCount.textContent = visible;
+
+        withoutWebsiteCount.textContent =
+            noWebsiteTotal;
+
+        withoutSocialCount.textContent =
+            noSocialTotal;
+
+
+        /*
+        Update filter text
+        */
+
+        if (!onlyNoWebsite && !onlyNoSocial) {
+
+            filterCount.textContent =
+                "Showing all businesses";
+
+        } else if (onlyNoWebsite && !onlyNoSocial) {
+
+            filterCount.textContent =
+                "Showing businesses without website";
+
+        } else if (!onlyNoWebsite && onlyNoSocial) {
+
+            filterCount.textContent =
+                "Showing businesses without social media";
+
+        } else {
+
+            filterCount.textContent =
+                "Showing businesses without website AND social media";
+
+        }
+
+    }
+
+
+    /*
+    ============================================================
+    FILTER EVENTS
+    ============================================================
+    */
+
+    noWebsiteFilter.addEventListener(
+        "change",
+        applyFilters
+    );
+
+    noSocialFilter.addEventListener(
+        "change",
+        applyFilters
+    );
+
+
+    /*
+    ============================================================
+    INITIAL FILTER
+    ============================================================
+    */
+
+    applyFilters();
+
+
+    /*
+    ============================================================
+    SEARCH
+    ============================================================
+    */
+
+    searchForm.addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+            const context =
+                document.getElementById("context").value.trim();
+
+            const maxResults =
+                document.getElementById("max_results").value;
+
+
+            if (!context) {
+
+                alert("Please enter a search.");
+
+                return;
+            }
+
+
+            /*
+            Disable search while running
+            */
+
+            searchButton.disabled = true;
+
+            clearButton.disabled = true;
+
+            searchButton.textContent =
+                "⏳ Searching...";
+
+
+            /*
+            Show progress
+            */
+
+            progressBox.style.display = "block";
+
+            progressStage.textContent =
+                "🔎 Starting search...";
+
+            progressMessage.textContent =
+                "Preparing Google Maps search...";
+
+            progressNumbers.textContent =
+                "0 / " + maxResults;
+
+            progressBar.style.width =
+                "0%";
+
+
+            /*
+            Form data
+            */
+
+            const formData =
+                new FormData(searchForm);
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "{% url 'start_scraping' %}",
+                        {
+                            method: "POST",
+                            body: formData,
+                            headers: {
+                                "X-CSRFToken": getCookie("csrftoken")
+                            }
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.error ||
+                        "Failed to start search."
+                    );
+                }
+
+
+                /*
+                Start polling
+                */
+
+                pollStatus(data.job_id);
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    "Search failed: " +
+                    error.message
+                );
+
+
+                searchButton.disabled = false;
+
+                clearButton.disabled = false;
+
+                searchButton.textContent =
+                    "🔎 Search";
+
+                progressBox.style.display =
+                    "none";
+            }
+
+        }
+    );
+
+
+    /*
+    ============================================================
+    POLL STATUS
+    ============================================================
+    */
+
+    async function pollStatus(jobId) {
+
+        const statusUrl =
+            "{% url 'scraping_status' job_id='JOB_ID_PLACEHOLDER' %}"
+                .replace(
+                    "JOB_ID_PLACEHOLDER",
+                    jobId
+                );
+
+
+        try {
+
+            const response =
+                await fetch(statusUrl);
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.message ||
+                    "Unable to get search status."
+                );
+            }
+
+
+            /*
+            Update progress stage
+            */
+
+            progressStage.textContent =
+                data.stage || "Working...";
+
+
+            progressMessage.textContent =
+                data.message || "";
+
+
+            /*
+            Progress numbers
+            */
+
+            const current =
+                Number(data.current || 0);
+
+            const total =
+                Number(data.total || 0);
+
+
+            progressNumbers.textContent =
+                current + " / " + total;
+
+
+            /*
+            Progress bar
+            */
+
+            let percentage = 0;
+
+            if (total > 0) {
+
+                percentage =
+                    Math.min(
+                        100,
+                        Math.round(
+                            (current / total) * 100
+                        )
+                    );
+            }
+
+
+            progressBar.style.width =
+                percentage + "%";
+
+
+            /*
+            Update DB count if available
+            */
+
+            if (
+                data.database_total !== undefined
+            ) {
+
+                totalDatabase.textContent =
+                    data.database_total;
+            }
+
+
+            /*
+            Completed
+            */
+
+            if (data.status === "completed") {
+
+                progressBar.style.width =
+                    "100%";
+
+                progressStage.textContent =
+                    "✅ Search completed";
+
+                progressMessage.textContent =
+                    data.message || "Search completed.";
+
+                searchButton.disabled = false;
+
+                clearButton.disabled = false;
+
+                searchButton.textContent =
+                    "🔎 Search";
+
+
+                /*
+                Reload table so newly saved
+                leads appear
+                */
+
+                setTimeout(
+                    function() {
+
+                        window.location.reload();
+
+                    },
+                    800
+                );
+
+                return;
+            }
+
+
+            /*
+            Error
+            */
+
+            if (data.status === "error") {
+
+                progressStage.textContent =
+                    "❌ Search failed";
+
+                progressMessage.textContent =
+                    data.message ||
+                    "Something went wrong.";
+
+                searchButton.disabled = false;
+
+                clearButton.disabled = false;
+
+                searchButton.textContent =
+                    "🔎 Search";
+
+                return;
+            }
+
+
+            /*
+            Continue polling
+            */
+
+            setTimeout(
+                function() {
+                    pollStatus(jobId);
+                },
+                800
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Status polling error:",
+                error
+            );
+
+            progressStage.textContent =
+                "❌ Unable to get progress";
+
+            progressMessage.textContent =
+                error.message;
+
+            searchButton.disabled = false;
+
+            clearButton.disabled = false;
+
+            searchButton.textContent =
+                "🔎 Search";
+        }
+
+    }
+
+
+    /*
+    ============================================================
+    CLEAR DATABASE
+    ============================================================
+    */
+
+    clearButton.addEventListener(
+        "click",
+        async function() {
+
+            const confirmed =
+                confirm(
+                    "Are you sure you want to delete ALL saved leads?"
+                );
+
+
+            if (!confirmed) {
+                return;
+            }
+
+
+            clearButton.disabled = true;
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "{% url 'clear_results' %}",
+                        {
+                            method: "POST",
+                            headers: {
+                                "X-CSRFToken":
+                                    getCookie("csrftoken")
+                            }
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.error ||
+                        "Failed to clear data."
+                    );
+                }
+
+
+                /*
+                Reload page
+                */
+
+                window.location.reload();
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    "Clear failed: " +
+                    error.message
+                );
+
+                clearButton.disabled = false;
+            }
+
+        }
+    );
+
+
+    /*
+    ============================================================
+    EXPORT CSV
+    ============================================================
+    */
+
+    exportButton.addEventListener(
+        "click",
+        function() {
+
+            window.location.href =
+                "{% url 'export_leads' %}";
+
+        }
+    );
+
+</script>
+
+</body>
+</html>
