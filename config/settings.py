@@ -42,6 +42,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "web_scraper",
     "whatsapp_bot",
+    "email_tool",
+    "whatsapp_tool",
+    "sms_tool",
 ]
 
 MIDDLEWARE = [

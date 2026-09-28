@@ -1,0 +1,1 @@
+"""Consent-based email tool."""

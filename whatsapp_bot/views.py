@@ -9,9 +9,10 @@ from .models import ChatbotRule, Conversation
 
 load_dotenv()
 
-VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN")
+VERIFY_TOKEN = os.getenv("WHATSAPP_WEBHOOK_VERIFY_TOKEN") or os.getenv("WHATSAPP_VERIFY_TOKEN")
 ACCESS_TOKEN = os.getenv("WHATSAPP_ACCESS_TOKEN")
 PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_NUMBER_ID")
+GRAPH_VERSION = os.getenv("WHATSAPP_GRAPH_VERSION", "v23.0")
 
 
 def find_reply(message):
@@ -31,9 +32,12 @@ def find_reply(message):
 
 def send_whatsapp_message(phone_number, message):
 
+    if os.getenv("WHATSAPP_ENABLED", "false").lower() != "true":
+        raise RuntimeError("WhatsApp sending is disabled")
+
     url = (
         f"https://graph.facebook.com/"
-        f"{PHONE_NUMBER_ID}/messages"
+        f"{GRAPH_VERSION}/{PHONE_NUMBER_ID}/messages"
     )
 
     headers = {

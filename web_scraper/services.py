@@ -6,7 +6,10 @@ import requests
 
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-from tavily import TavilyClient
+try:
+    from tavily import TavilyClient
+except ImportError:  # Optional: the free website-only mode does not need Tavily.
+    TavilyClient = None
 
 from urllib.parse import (
     urljoin,
@@ -27,10 +30,14 @@ EMAIL_REGEX = (
     r"@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"
 )
 
-PHONE_REGEX = (
-    r"(?:\+91[\s-]?)?"
-    r"(?:[6-9]\d{9})"
-)
+
+# Keep the candidate expression deliberately broad.  Validation and
+# normalization happen in ``normalize_phone`` so we can accept the formats
+# commonly published by Indian businesses, for example:
+#   98765 43210, +91 (98765) 43210, 011-45678901, 0120 456 7890
+# The old expression only matched a single 10-digit mobile number and missed
+# landlines, formatted numbers, and numbers embedded in ``tel:`` links.
+PHONE_REGEX = r"(?<!\d)(?:\+?\d[\d\s().-]{7,}\d)(?!\d)"
 
 
 # =========================================================
@@ -510,6 +517,7 @@ def search_businesses(
             "places.id,"
             "places.displayName,"
             "places.formattedAddress,"
+            "places.primaryTypeDisplayName,"
             "places.nationalPhoneNumber,"
             "places.websiteUri,"
             "places.googleMapsUri,"
@@ -862,10 +870,17 @@ def extract_email(
     if not text:
         return ""
 
-    matches = re.findall(
-        EMAIL_REGEX,
-        text
+    normalized_text = str(text)
+    normalized_text = re.sub(
+        r"\s*(?:\[at\]|\(at\))\s*", "@", normalized_text, flags=re.IGNORECASE
     )
+    normalized_text = re.sub(
+        r"\s*(?:\[dot\]|\(dot\))\s*", ".", normalized_text, flags=re.IGNORECASE
+    )
+    normalized_text = re.sub(r"(?<=\w)\s+@\s+(?=\w)", "@", normalized_text)
+    normalized_text = re.sub(r"(?<=\w)\s+\.\s+(?=\w)", ".", normalized_text)
+
+    matches = re.findall(EMAIL_REGEX, normalized_text)
 
     for email in matches:
 
@@ -895,23 +910,42 @@ def normalize_phone(
     if not phone:
         return ""
 
-    digits = re.sub(
-        r"\D",
-        "",
-        str(phone)
-    )
+    # ``extract_phone`` may return more than one number. Preserve that list
+    # when the final pipeline normalizes the value again.
+    if isinstance(phone, str) and re.search(r"[,;|]", phone):
+        normalized_numbers = []
+        for item in re.split(r"[,;|]", phone):
+            normalized = normalize_phone(item)
+            if normalized:
+                for number in normalized.split(", "):
+                    if number not in normalized_numbers:
+                        normalized_numbers.append(number)
+        return ", ".join(normalized_numbers)
 
-    if (
-        len(digits) == 12
-        and digits.startswith("91")
-    ):
+    value = str(phone).strip()
+    digits = re.sub(r"\D", "", value)
 
+    # Normalize an Indian country code while retaining the national number.
+    # This handles +91, 0091, and formatted variants such as +91 (120) ... .
+    if digits.startswith("0091") and len(digits) > 10:
+        digits = digits[4:]
+    elif digits.startswith("91") and len(digits) > 10:
         digits = digits[2:]
 
-    if (
-        len(digits) == 10
-        and digits[0] in "6789"
-    ):
+    # Indian numbers are stored as national digits. Mobile numbers start with
+    # 6-9; landlines commonly start with 0 and have a 2-4 digit STD code.
+    if len(digits) == 10 and digits[0] in "6789":
+        return digits
+
+    if len(digits) == 11 and digits.startswith("0"):
+        national = digits[1:]
+        if len(national) == 10:
+            return national
+
+    # Keep valid Indian landlines in national form. A landline can be
+    # 10 digits without the leading zero (e.g. 1204567890) or 11 digits with
+    # it (01204567890). Reject short/long arbitrary digit strings.
+    if len(digits) == 10 and digits[0] in "123456789":
         return digits
 
     return ""
@@ -924,19 +958,19 @@ def extract_phone(
     if not text:
         return ""
 
-    matches = re.findall(
-        PHONE_REGEX,
-        text
-    )
+    matches = re.findall(PHONE_REGEX, str(text))
+    numbers = []
 
     for phone in matches:
+        normalized = normalize_phone(phone)
+        if normalized and normalized not in numbers:
+            numbers.append(normalized)
 
-        normalized = normalize_phone(
-            phone
-        )
-
-        if normalized:
-            return normalized
+    # Keep all distinct valid numbers. The existing database field is a text
+    # field, so comma-separated national digits remain backward-compatible
+    # with existing records and exports.
+    if numbers:
+        return ", ".join(numbers)
 
     return ""
 
@@ -2041,8 +2075,15 @@ def scrape_website(
         )
     )
 
+    email_sources = [text]
+    email_sources.extend(
+        link.get("href", "")
+        for link in soup.find_all("a", href=True)
+        if str(link.get("href", "")).lower().startswith("mailto:")
+    )
+
     result["email"] = extract_email(
-        text,
+        " ".join(email_sources),
         allowed_domain=official_domain
     )
 
@@ -2717,7 +2758,9 @@ def discover_leads(
         report_progress(
             progress_callback,
             stage="🔍 Processing businesses...",
-            current=index - 1,
+            # Mark the item as actively being processed so the UI does not
+            # remain at zero while website/API enrichment is in progress.
+            current=index,
             total=total_places,
             message=(
                 f"Processing "
@@ -2838,6 +2881,14 @@ def discover_leads(
                 website
             )
 
+            report_progress(
+                progress_callback,
+                stage="🌐 Website processed",
+                current=index,
+                total=total_places,
+                message=business_name,
+            )
+
             # ---------------------------------------------
             # Email
             # ---------------------------------------------
@@ -2904,11 +2955,15 @@ def discover_leads(
 
         try:
 
-            tavily_key = os.getenv(
-                "TAVILY_API_KEY"
-            )
+            tavily_key = os.getenv("TAVILY_API_KEY")
+            tavily_enabled = os.getenv(
+                "ENABLE_TAVILY",
+                "false",
+            ).strip().lower() in {"1", "true", "yes", "on"}
 
-            if tavily_key:
+            # Tavily enrichment is opt-in. Website/Google extraction remains
+            # fully usable without consuming Tavily quota.
+            if tavily_key and tavily_enabled and TavilyClient is not None:
 
                 report_progress(
                     progress_callback,
@@ -2939,6 +2994,14 @@ def discover_leads(
                 tavily_results = response.get(
                     "results",
                     []
+                )
+
+                report_progress(
+                    progress_callback,
+                    stage="🔎 Contact data processed",
+                    current=index,
+                    total=total_places,
+                    message=business_name,
                 )
 
                 # -----------------------------------------
@@ -3095,6 +3158,12 @@ def discover_leads(
 
         lead = {
             "business_name": business_name,
+            "category": clean_text(
+                place.get("primaryTypeDisplayName", {}).get("text", "")
+                if isinstance(place.get("primaryTypeDisplayName", {}), dict)
+                else place.get("primaryTypeDisplayName", "")
+            ),
+            "location": clean_text(place.get("formattedAddress", "")),
             "place_id": place_id,
             "website": website_value,
             "email": email,

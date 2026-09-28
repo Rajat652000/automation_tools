@@ -405,6 +405,14 @@
                     📥 Export CSV
                 </button>
 
+                <button
+                    type="button"
+                    class="export-btn"
+                    id="exportJsonButton"
+                >
+                    📄 Export JSON
+                </button>
+
             </div>
 
         </form>
@@ -804,6 +812,9 @@
 
     const exportButton =
         document.getElementById("exportButton");
+
+    const exportJsonButton =
+        document.getElementById("exportJsonButton");
 
     const progressBox =
         document.getElementById("progressBox");
@@ -1407,6 +1418,14 @@
             window.location.href =
                 "{% url 'export_leads' %}";
 
+        }
+    );
+
+    exportJsonButton.addEventListener(
+        "click",
+        function() {
+            window.location.href =
+                "{% url 'export_leads_json' %}";
         }
     );
 

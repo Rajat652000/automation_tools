@@ -6,6 +6,7 @@ from .views import (
     scraping_status,
     clear_results,
     export_leads_csv,
+    export_leads_json,
 )
 
 
@@ -16,6 +17,7 @@ urlpatterns = [
         scraper_home,
         name="scraper_home"
     ),
+
 
     path(
         "start/",
@@ -39,5 +41,11 @@ urlpatterns = [
         "export/",
         export_leads_csv,
         name="export_leads"
+    ),
+
+    path(
+        "export/json/",
+        export_leads_json,
+        name="export_leads_json"
     ),
 ]

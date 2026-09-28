@@ -1,4 +1,5 @@
 import csv
+import json
 import threading
 import uuid
 
@@ -8,6 +9,7 @@ from django.views.decorators.http import require_POST
 
 from .models import Lead
 from .services import discover_leads
+
 
 
 # =========================================================
@@ -32,6 +34,8 @@ def scraper_home(request):
             "total_leads": leads.count(),
         },
     )
+
+
 
 
 # =========================================================
@@ -887,4 +891,39 @@ def export_leads_csv(request):
         ])
 
 
+    return response
+
+
+# =========================================================
+# EXPORT JSON
+# =========================================================
+
+def export_leads_json(request):
+    """Download all saved leads as a structured JSON document."""
+    leads = Lead.objects.all().order_by("-created_at")
+    data = [
+        {
+            "id": lead.id,
+            "business_name": lead.business_name,
+            "category": lead.category,
+            "location": lead.location,
+            "search_context": lead.search_context,
+            "website": lead.website,
+            "email": lead.email,
+            "phone": lead.phone,
+            "instagram": lead.instagram,
+            "facebook": lead.facebook,
+            "linkedin": lead.linkedin,
+            "source_url": lead.source_url,
+            "has_website": lead.has_website,
+            "place_id": lead.place_id,
+            "created_at": lead.created_at.isoformat(),
+        }
+        for lead in leads
+    ]
+    response = HttpResponse(
+        json.dumps(data, ensure_ascii=False, indent=2),
+        content_type="application/json; charset=utf-8",
+    )
+    response["Content-Disposition"] = 'attachment; filename="lead_data.json"'
     return response
