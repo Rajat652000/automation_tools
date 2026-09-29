@@ -1,7 +1,9 @@
 import json
 from django.shortcuts import render
 from .services import send_bulk_messages
+from portal.decorators import tool_access
 
+@tool_access("whatsapp")
 def home(request):
     result = ""
     imported = ""
@@ -31,3 +33,4 @@ def home(request):
             except Exception as error:
                 result = f"WhatsApp send failed: {error}"
     return render(request, "whatsapp_tool/home.html", {"result": result, "imported": imported})
+from portal.decorators import tool_access

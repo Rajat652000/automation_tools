@@ -1,7 +1,9 @@
 import json
 from django.shortcuts import render
 from .services import send_bulk_sms
+from portal.decorators import tool_access
 
+@tool_access("sms")
 def home(request):
     result = ""
     imported = ""

@@ -1,7 +1,9 @@
 from django.db import models
+from django.conf import settings
 
 
 class Lead(models.Model):
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.CASCADE, related_name="scraped_leads")
     business_name = models.CharField(max_length=255)
 
     category = models.CharField(

@@ -9,6 +9,7 @@ from django.views.decorators.http import require_POST
 
 from .models import Lead
 from .services import discover_leads
+from portal.decorators import tool_access
 
 
 
@@ -23,8 +24,9 @@ JOBS = {}
 # HOME
 # =========================================================
 
+@tool_access("scraper")
 def scraper_home(request):
-    leads = Lead.objects.all().order_by("-created_at")
+    leads = Lead.objects.filter(owner=request.user).order_by("-created_at")
 
     return render(
         request,
@@ -134,7 +136,8 @@ def update_job_progress(job_id, progress):
 def run_scraping_job(
     job_id,
     context,
-    max_results
+    max_results,
+    owner
 ):
 
     try:
@@ -156,7 +159,7 @@ def run_scraping_job(
         # Final DB can become 116.
         # =================================================
 
-        existing_count = Lead.objects.count()
+        existing_count = Lead.objects.filter(owner=owner).count()
 
         JOBS[job_id].update({
 
@@ -291,9 +294,7 @@ def run_scraping_job(
 
             if place_id:
 
-                already_exists = Lead.objects.filter(
-                    place_id=place_id
-                ).exists()
+                already_exists = Lead.objects.filter(owner=owner, place_id=place_id).exists()
 
                 if already_exists:
 
@@ -334,6 +335,8 @@ def run_scraping_job(
             try:
 
                 Lead.objects.create(
+
+                    owner=owner,
 
                     business_name=lead.get(
                         "business_name",
@@ -407,9 +410,7 @@ def run_scraping_job(
                 # Handle race-condition / unique place_id
                 # -----------------------------------------
 
-                if place_id and Lead.objects.filter(
-                    place_id=place_id
-                ).exists():
+                if place_id and Lead.objects.filter(owner=owner, place_id=place_id).exists():
 
                     skipped += 1
 
@@ -422,7 +423,7 @@ def run_scraping_job(
             # UPDATE UI
             # -------------------------------------------------
 
-            current_db_count = Lead.objects.count()
+            current_db_count = Lead.objects.filter(owner=owner).count()
 
             JOBS[job_id].update({
 
@@ -454,7 +455,7 @@ def run_scraping_job(
         # FINAL STATUS
         # =================================================
 
-        final_count = Lead.objects.count()
+        final_count = Lead.objects.filter(owner=owner).count()
 
 
         if len(results) >= max_results:
@@ -537,6 +538,7 @@ def run_scraping_job(
 # START SCRAPING
 # =========================================================
 
+@tool_access("scraper")
 def start_scraping(request):
 
     # =====================================================
@@ -645,7 +647,7 @@ def start_scraping(request):
     )
 
 
-    existing_count = Lead.objects.count()
+    existing_count = Lead.objects.filter(owner=request.user).count()
 
 
     JOBS[job_id] = {
@@ -690,6 +692,8 @@ def start_scraping(request):
             context,
 
             max_results,
+
+            request.user,
         ),
 
         daemon=True,
@@ -719,6 +723,7 @@ def start_scraping(request):
 # SEARCH STATUS
 # =========================================================
 
+@tool_access("scraper")
 def scraping_status(
     request,
     job_id
@@ -754,6 +759,7 @@ def scraping_status(
 # CLEAR RESULTS
 # =========================================================
 
+@tool_access("scraper")
 @require_POST
 def clear_results(request):
 
@@ -762,7 +768,7 @@ def clear_results(request):
     # =====================================================
 
     deleted_count, _ = (
-        Lead.objects.all().delete()
+        Lead.objects.filter(owner=request.user).delete()
     )
 
 
@@ -786,6 +792,7 @@ def clear_results(request):
 # EXPORT CSV
 # =========================================================
 
+@tool_access("scraper")
 def export_leads_csv(request):
 
     response = HttpResponse(
@@ -847,7 +854,7 @@ def export_leads_csv(request):
     # LEADS
     # =====================================================
 
-    leads = Lead.objects.all().order_by(
+    leads = Lead.objects.filter(owner=request.user).order_by(
         "-created_at"
     )
 
@@ -898,9 +905,10 @@ def export_leads_csv(request):
 # EXPORT JSON
 # =========================================================
 
+@tool_access("scraper")
 def export_leads_json(request):
     """Download all saved leads as a structured JSON document."""
-    leads = Lead.objects.all().order_by("-created_at")
+    leads = Lead.objects.filter(owner=request.user).order_by("-created_at")
     data = [
         {
             "id": lead.id,
