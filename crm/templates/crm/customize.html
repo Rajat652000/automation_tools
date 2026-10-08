@@ -1,0 +1,51 @@
+{% extends "crm/base.html" %}{% block content %}<style>
+  .module-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .module-list label {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+    padding: 15px;
+    border: 1px solid #dce3f0;
+    border-radius: 10px;
+    background: #fafbff;
+    color: #172033 !important;
+  }
+  .module-list label span {
+    color: #172033 !important;
+  }
+  .module-list input {
+    width: auto;
+    margin: 0;
+  }
+  html.automation-dark .module-list label {
+    background: #1b2435 !important;
+    border-color: #52637e !important;
+    color: #f1f5f9 !important;
+  }
+  html.automation-dark .module-list label span {
+    color: #f1f5f9 !important;
+  }
+</style>
+<div class="card">
+  <h1>Customize your CRM</h1>
+  <p class="muted">
+    Choose your business type and the modules you want to use.
+  </p>
+  <form method="post">
+    {% csrf_token %}
+    <h3>Business type</h3>
+    {{ form.industry }}
+    <h3>Modules</h3>
+    <div class="module-list">
+      {% for checkbox in form.modules %}<label
+        >{{ checkbox.tag }}<span>{{ checkbox.choice_label }}</span></label
+      >{% endfor %}
+    </div>
+    <br /><button>Save CRM setup</button>
+  </form>
+</div>
+{% endblock %}

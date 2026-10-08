@@ -1,0 +1,281 @@
+{% extends "crm/base.html" %}{% block content %}<style>
+  .finance-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .finance-value {
+    font-size: 25px;
+    font-weight: 800;
+    margin-top: 8px;
+  }
+  .chart-wrap {
+    width: 100%;
+    height: 430px;
+    position: relative;
+  }
+  .chart-wrap canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+  .legend {
+    display: flex;
+    gap: 24px;
+    font-weight: 700;
+  }
+  .sales-key {
+    color: #ef6f9d;
+  }
+  .purchase-key {
+    color: #79a7d8;
+  }
+  .edit-btn {
+    background: #f59e0b;
+    color: #172033;
+    padding: 6px 10px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  @media (max-width: 700px) {
+    .finance-grid {
+      grid-template-columns: 1fr;
+    }
+    .chart-wrap {
+      height: 300px;
+    }
+  }
+</style>
+<div
+  style="
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+  "
+>
+  <div>
+    <p class="muted">Transaction module</p>
+    <h1>Sales & Purchases</h1>
+  </div>
+  <form method="get">
+    <label
+      >Show month <input type="month" name="month" value="{{month}}" /></label
+    ><button>Apply</button>
+  </form>
+</div>
+<div class="finance-grid">
+  <div class="card">
+    Total sales
+    <div class="finance-value">₹ {{sales|floatformat:2}}</div>
+  </div>
+  <div class="card">
+    Total purchases
+    <div class="finance-value">₹ {{purchases|floatformat:2}}</div>
+  </div>
+  <div class="card">
+    Net amount
+    <div class="finance-value">₹ {{net|floatformat:2}}</div>
+  </div>
+</div>
+<div class="card">
+  <h2>Sales vs Purchases</h2>
+  <p class="muted">Hover any bar to see date and exact amount.</p>
+  <div class="chart-wrap">
+    <canvas id="transaction-bars"></canvas>
+    <div
+      id="bar-tooltip"
+      style="
+        display: none;
+        position: absolute;
+        z-index: 5;
+        background: #111827;
+        color: #fff;
+        padding: 9px 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        pointer-events: none;
+        box-shadow: 0 5px 20px #0005;
+      "
+    ></div>
+  </div>
+  <div class="legend">
+    <span class="sales-key">■ Sales</span
+    ><span class="purchase-key">■ Purchases</span>
+  </div>
+  <script type="application/json" id="transaction-data">
+    {{graph_data|safe}}
+  </script>
+  <script>
+    (function () {
+      var data = JSON.parse(
+          document
+            .getElementById("transaction-data")
+            .textContent.replaceAll("'", '"'),
+        ),
+        c = document.getElementById("transaction-bars"),
+        tip = document.getElementById("bar-tooltip"),
+        dpr = window.devicePixelRatio || 1,
+        w = c.clientWidth,
+        h = c.clientHeight;
+      c.width = w * dpr;
+      c.height = h * dpr;
+      var x = c.getContext("2d");
+      x.scale(dpr, dpr);
+      var left = 65,
+        right = 25,
+        top = 25,
+        bottom = 65,
+        pw = w - left - right,
+        ph = h - top - bottom,
+        max = Math.max(1, ...data.map((d) => Math.max(d.sales, d.purchases))),
+        slot = pw / Math.max(data.length, 1),
+        bw = Math.min(30, slot / 4),
+        bars = [];
+      x.strokeStyle = "#94a3b8";
+      x.fillStyle = getComputedStyle(document.body).color;
+      x.beginPath();
+      x.moveTo(left, top);
+      x.lineTo(left, h - bottom);
+      x.lineTo(w - right, h - bottom);
+      x.stroke();
+      x.font = "12px system-ui";
+      for (var i = 0; i <= 4; i++) {
+        var y = top + ph - (i / 4) * ph;
+        x.globalAlpha = 0.25;
+        x.beginPath();
+        x.moveTo(left, y);
+        x.lineTo(w - right, y);
+        x.stroke();
+        x.globalAlpha = 1;
+        x.fillText("₹ " + Math.round((max * i) / 4), 8, y + 4);
+      }
+      data.forEach(function (d, i) {
+        var gx = left + i * slot + slot / 2,
+          sh = (d.sales / max) * ph,
+          phh = (d.purchases / max) * ph,
+          items = [
+            {
+              key: "Sales",
+              value: d.sales,
+              x: gx - bw - 3,
+              y: top + ph - sh,
+              height: sh,
+              color: "#ef6f9d",
+            },
+            {
+              key: "Purchases",
+              value: d.purchases,
+              x: gx + 3,
+              y: top + ph - phh,
+              height: phh,
+              color: "#79a7d8",
+            },
+          ];
+        items.forEach(function (b) {
+          x.fillStyle = b.color;
+          x.fillRect(b.x, b.y, bw, b.height);
+          bars.push({ date: d.date, bar: b });
+        });
+        x.fillStyle = getComputedStyle(document.body).color;
+        x.fillText(d.date.slice(5), gx - 25, h - 35);
+      });
+      c.addEventListener("mousemove", function (e) {
+        var r = c.getBoundingClientRect(),
+          mx = e.clientX - r.left,
+          my = e.clientY - r.top,
+          hit = bars.find(
+            (z) =>
+              mx >= z.bar.x &&
+              mx <= z.bar.x + bw &&
+              my >= z.bar.y &&
+              my <= z.bar.y + z.bar.height,
+          );
+        if (hit) {
+          tip.style.display = "block";
+          tip.style.left = mx + 12 + "px";
+          tip.style.top = my + 8 + "px";
+          tip.textContent =
+            hit.date +
+            " — " +
+            hit.bar.key +
+            ": ₹ " +
+            Number(hit.bar.value).toFixed(2);
+        } else tip.style.display = "none";
+      });
+      c.addEventListener("mouseleave", function () {
+        tip.style.display = "none";
+      });
+    })();
+  </script>
+</div>
+<div class="card">
+  <h2>Transaction details</h2>
+  <div style="overflow: auto">
+    <table>
+      <tr>
+        <th>Date</th>
+        <th>Type</th>
+        <th>Item</th>
+        <th>Quantity</th>
+        <th>Unit price</th>
+        <th>Total</th>
+        <th>Contact</th>
+        <th>Action</th>
+      </tr>
+      {% for row in rows %}
+      <tr>
+        <td>{{row.date}}</td>
+        <td>{{row.get_kind_display}}</td>
+        <td>{{row.item_name}}</td>
+        <td>{{row.quantity}}</td>
+        <td>₹ {{row.unit_price}}</td>
+        <td>₹ {{row.total}}</td>
+        <td>{{row.contact|default:"—"}}</td>
+        <td>
+          <a class="edit-btn" href="/crm/transactions/{{row.id}}/edit/">Edit</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="8">No transactions for this month.</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+<div class="card" id="add">
+  <h2>Add sale or purchase</h2>
+  <form method="post">
+    {% csrf_token %}<label
+      >Type<select name="kind">
+        <option value="sale">Sale</option>
+        <option value="purchase">Purchase</option>
+      </select></label
+    ><label>Item name<input name="item_name" required /></label
+    ><label
+      >Quantity<input
+        type="number"
+        step="0.01"
+        name="quantity"
+        required /></label
+    ><label
+      >Unit price (₹)<input
+        type="number"
+        step="0.01"
+        name="unit_price"
+        required /></label
+    ><label>Date<input type="date" name="date" required /></label
+    ><label
+      >Contact<select name="contact">
+        <option value="">None</option>
+        {% for c in contacts %}
+        <option value="{{c.id}}">{{c.name}} — {{c.company_name}}</option>
+        {% endfor %}
+      </select></label
+    ><label>Note<input name="note" /></label><button>Save transaction</button>
+  </form>
+</div>
+{% endblock %}

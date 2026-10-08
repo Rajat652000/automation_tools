@@ -1,0 +1,22 @@
+{% extends "crm/base.html" %}{% block content %}
+<div class="card">
+  <h1>Attendance — {{contact.name}}</h1>
+  <form method="post">
+    {% csrf_token %}<label>Date<input type="date" name="date" required /></label
+    ><label
+      >Status<select name="status">
+        <option>present</option>
+        <option>absent</option>
+        <option>late</option>
+      </select></label
+    ><label>Note<textarea name="note"></textarea></label
+    ><button>Save attendance</button>
+  </form>
+  <h2>History</h2>
+  {% for row in records %}
+  <p>{{row.date}} — {{row.status}} — {{row.note}}</p>
+  {% empty %}
+  <p>No attendance records.</p>
+  {% endfor %}
+</div>
+{% endblock %}

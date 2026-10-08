@@ -1,0 +1,258 @@
+{% extends "crm/base.html" %} {% block content %}
+<style>
+  .crm-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+  .crm-head h1 {
+    margin-bottom: 6px;
+  }
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+  }
+  .stat-card {
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card:after {
+    content: "";
+    position: absolute;
+    right: -24px;
+    bottom: -34px;
+    width: 95px;
+    height: 95px;
+    border-radius: 50%;
+    background: rgba(53, 106, 230, 0.14);
+  }
+  .status-wrap {
+    padding: 24px;
+  }
+  .status-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  .status-panel {
+    border: 1px solid #dfe6f2;
+    border-radius: 14px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.45);
+  }
+  .status-panel.has-items {
+    grid-column: span 2;
+  }
+  .status-panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 17px;
+    background: rgba(53, 106, 230, 0.09);
+    border-bottom: 1px solid #dfe6f2;
+  }
+  .status-panel-head h3 {
+    margin: 0;
+  }
+  .count-pill {
+    border-radius: 999px;
+    padding: 3px 10px;
+    background: #356ae6;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .contact-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 17px;
+    border-bottom: 1px solid #e8edf5;
+  }
+  .contact-row:last-child {
+    border-bottom: 0;
+  }
+  .contact-main {
+    min-width: 0;
+  }
+  .contact-main a {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .contact-meta {
+    font-size: 12px;
+    color: #718096;
+  }
+  .status-form {
+    margin: 0;
+  }
+  .status-form select {
+    width: auto;
+    min-width: 112px;
+    margin: 0;
+    padding: 8px 28px 8px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .empty-status {
+    padding: 18px;
+    color: #718096;
+    font-size: 13px;
+  }
+  .quick-actions {
+    display: flex;
+    gap: 9px;
+    flex-wrap: wrap;
+  }
+  @media (max-width: 760px) {
+    .status-panel.has-items {
+      grid-column: span 1;
+    }
+    .crm-head {
+      align-items: start;
+      flex-direction: column;
+    }
+    .status-wrap {
+      padding: 17px;
+    }
+    .contact-row {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+    .status-form select {
+      width: 100%;
+    }
+  }
+  html.automation-dark .status-panel {
+    background: rgba(16, 24, 40, 0.45);
+    border-color: #3b4d6c;
+  }
+  html.automation-dark .status-panel-head {
+    background: rgba(53, 106, 230, 0.14);
+    border-color: #3b4d6c;
+  }
+  html.automation-dark .contact-row {
+    border-color: #34445e;
+  }
+</style>
+<div class="crm-head">
+  <div>
+    <h1>CRM Dashboard</h1>
+    <p class="muted">Manage your contacts by status from one place.</p>
+  </div>
+  <div class="quick-actions">
+    <a class="btn" href="/crm/contacts/">Manage contacts</a
+    ><a class="btn" href="/crm/contacts/add/">+ Add contact</a>
+  </div>
+</div>
+{% if not configuration or 'contacts' in configuration.modules %}
+<div class="stat-grid">
+  <div class="card stat-card">
+    Total contacts
+    <div class="num">{{ total }}</div>
+  </div>
+  <div class="card stat-card">
+    Leads
+    <div class="num">{{ leads }}</div>
+  </div>
+  <div class="card stat-card">
+    Customers
+    <div class="num">{{ customers }}</div>
+  </div>
+  <div class="card stat-card">
+    Inactive
+    <div class="num">{{ inactive }}</div>
+  </div>
+</div>
+<div class="card status-wrap">
+  <div class="status-title">
+    <div>
+      <h2>Contact pipeline</h2>
+      <p class="muted">Change a contact’s status directly from its row.</p>
+    </div>
+  </div>
+  <div class="status-grid">
+    {% for group in contact_groups %}
+    <section class="status-panel {% if group.count %}has-items{% endif %}">
+      <div class="status-panel-head">
+        <h3>{{ group.label }}</h3>
+        <span class="count-pill">{{ group.count }}</span>
+      </div>
+      {% for contact in group.contacts %}
+      <div class="contact-row">
+        <div class="contact-main">
+          <a href="/crm/contacts/{{ contact.id }}/"
+            ><b>{{ contact.name }}</b></a
+          >
+          <div class="contact-meta">
+            {% if contact.company_name %}{{ contact.company_name }}{% endif %}{%
+            if contact.email %}{% if contact.company_name %} · {% endif %}{{
+            contact.email }}{% endif %}
+          </div>
+        </div>
+        <form
+          class="status-form"
+          method="post"
+          action="/crm/contacts/{{ contact.id }}/status/"
+        >
+          <input
+            type="hidden"
+            name="csrfmiddlewaretoken"
+            value="{{ csrf_token }}"
+          /><select
+            name="status"
+            aria-label="Change status for {{ contact.name }}"
+            onchange="this.form.submit()"
+          >
+            {% for value,label in statuses %}
+            <option
+              value="{{ value }}"
+              {%
+              if
+              contact.status=""
+              ="value"
+              %}selected{%
+              endif
+              %}
+            >
+              {{ label }}
+            </option>
+            {% endfor %}
+          </select>
+        </form>
+      </div>
+      {% empty %}
+      <div class="empty-status">No {{ group.label|lower }} contacts yet.</div>
+      {% endfor %}
+    </section>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+<div class="card quick-actions">
+  <a class="btn" href="/crm/customize/">Customize CRM</a>{% if configuration and
+  'attendance' in configuration.modules %}<a class="btn" href="/crm/attendance/"
+    >Open attendance</a
+  >{% endif %}{% if configuration and 'transactions' in configuration.modules
+  %}<a class="btn" href="/crm/transactions/">Sales &amp; Purchases</a>{% endif
+  %}{% if configuration and 'import_export' in configuration.modules %}<a
+    class="btn"
+    href="/crm/import/csv/"
+    >Import</a
+  ><a class="btn" href="/crm/export/csv/">Export</a>{% endif %}
+</div>
+{% endblock %}

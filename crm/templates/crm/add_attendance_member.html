@@ -1,0 +1,30 @@
+{% extends "crm/base.html" %}{% block content %}
+<div class="card">
+  <h1>Add attendance member</h1>
+  <p class="muted">These members are separate from CRM contacts.</p>
+  <form method="post">
+    {% csrf_token %}<label>Name<input name="name" required /></label
+    ><label>Phone<input name="phone" /></label
+    ><label
+      >Role<input name="role" placeholder="Teacher, employee, student" /></label
+    ><label
+      >Pay type<select name="pay_type">
+        <option value="monthly">Monthly salary</option>
+        <option value="hourly">Hourly / part-time</option>
+      </select></label
+    ><label
+      >Pay rate<input
+        type="number"
+        step="0.01"
+        name="pay_rate"
+        required /></label
+    ><label
+      >Standard daily hours<input
+        type="number"
+        step="0.25"
+        name="standard_hours"
+        value="8" /></label
+    ><button>Add member</button>
+  </form>
+</div>
+{% endblock %}

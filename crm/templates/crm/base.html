@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>CRM</title>
+    <style>
+      body {
+        margin: 0;
+        background: #f5f7fb;
+        color: #172033;
+        font: 14px system-ui;
+      }
+      .nav {
+        background: #15203b;
+        color: white;
+        padding: 16px 5%;
+        display: flex;
+        gap: 18px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .nav a {
+        color: #dbe4ff;
+        text-decoration: none;
+      }
+      .wrap {
+        max-width: 1100px;
+        margin: auto;
+        padding: 28px 20px;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #e5eaf2;
+        border-radius: 14px;
+        padding: 20px;
+        margin-bottom: 18px;
+      }
+      .num {
+        font-size: 28px;
+        font-weight: 800;
+        margin-top: 8px;
+      }
+      button,
+      .btn {
+        background: #356ae6;
+        color: #fff;
+        border: 0;
+        border-radius: 8px;
+        padding: 10px 14px;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      input,
+      select,
+      textarea {
+        padding: 10px;
+        border: 1px solid #d6ddeb;
+        border-radius: 8px;
+        width: 100%;
+        box-sizing: border-box;
+        margin: 5px 0 12px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+      }
+      th,
+      td {
+        padding: 13px;
+        border-bottom: 1px solid #edf0f5;
+        text-align: left;
+      }
+      .muted {
+        color: #718096;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="nav">
+      <b>CRM</b><a href="/crm/">Dashboard</a
+      ><a href="/crm/customize/">Customize CRM</a>{% if not crm_configuration or
+      'contacts' in crm_configuration.modules %}<a href="/crm/contacts/"
+        >Contacts</a
+      >{% endif %}{% if not crm_configuration or 'tags' in
+      crm_configuration.modules %}<a href="/crm/tags/">Tags</a>{% endif %}{% if
+      not crm_configuration or 'segments' in crm_configuration.modules %}<a
+        href="/crm/segments/"
+        >Segments</a
+      >{% endif %}{% if not crm_configuration or 'attendance' in
+      crm_configuration.modules %}<a href="/crm/attendance/">Attendance</a
+      ><a href="/crm/attendance/members/add/">+ Add member</a>{% endif %}{% if
+      not crm_configuration or 'transactions' in crm_configuration.modules %}<a
+        href="/crm/transactions/"
+        >Sales & Purchases</a
+      >{% endif %}{% if not crm_configuration or 'import_export' in
+      crm_configuration.modules %}<a href="/crm/import/csv/">Import</a
+      ><a href="/crm/export/csv/">Export</a>{% endif %}<a href="/">All tools</a
+      ><a href="/logout/">Logout</a>
+    </nav>
+    <main class="wrap">
+      {% for message in messages %}
+      <p>{{message}}</p>
+      {% endfor %}{% block content %}{% endblock %}
+    </main>
+  </body>
+</html>

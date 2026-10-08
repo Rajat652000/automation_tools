@@ -1,0 +1,20 @@
+{% extends "crm/base.html" %}{% block content %}
+<div class="card">
+  <h1>Import contacts</h1>
+  <p class="muted">
+    Upload CSV or Excel (.xlsx) with columns: name, company_name, phone, email,
+    city, category, status, notes.
+  </p>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}<input
+      type="file"
+      name="file"
+      accept=".csv,.xlsx,.xlsm"
+      required
+    /><select name="duplicate_mode">
+      <option value="skip">Skip existing contacts</option>
+      <option value="update">Update existing contacts</option></select
+    ><button>Import contacts</button>
+  </form>
+</div>
+{% endblock %}

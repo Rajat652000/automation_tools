@@ -1,0 +1,20 @@
+{% extends "crm/base.html" %}{% block content %}
+<div class="card">
+  <h1>Segments</h1>
+  <p class="muted">Saved rules update dynamically.</p>
+  <form method="post">
+    {% csrf_token %}{{form.as_p}}<button>Save segment</button>
+  </form>
+</div>
+<div class="card">
+  <h2>Saved segments</h2>
+  {% for segment in segments %}
+  <p>
+    <b>{{segment.name}}</b> — {{segment.rules.field}} {{segment.rules.operator}}
+    {{segment.rules.value}}
+  </p>
+  {% empty %}
+  <p>No segments yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}

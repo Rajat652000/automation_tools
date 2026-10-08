@@ -1,1 +1,50 @@
-<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Automation Tools Login</title><style>body{font:15px system-ui;background:#f4f6fb;display:grid;place-items:center;min-height:100vh;color:#172033}.card{background:#fff;padding:30px;border-radius:18px;width:min(380px,90%);box-shadow:0 12px 35px #17203316}input{width:100%;box-sizing:border-box;padding:12px;margin:7px 0 14px;border:1px solid #d7deea;border-radius:9px}button{width:100%;padding:12px;border:0;border-radius:9px;background:#356ae6;color:#fff;font-weight:700}</style></head><body><section class="card"><h1>Automation Tools</h1><p>Sign in to access your assigned tools.</p><form method="post">{% csrf_token %}{{ form.as_p }}<button>Sign in</button></form></section></body></html>
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Automation Tools Login</title>
+    <style>
+      body {
+        font: 15px system-ui;
+        background: #f4f6fb;
+        display: grid;
+        place-items: center;
+        min-height: 100vh;
+        color: #172033;
+      }
+      .card {
+        background: #fff;
+        padding: 30px;
+        border-radius: 18px;
+        width: min(380px, 90%);
+        box-shadow: 0 12px 35px #17203316;
+      }
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 12px;
+        margin: 7px 0 14px;
+        border: 1px solid #d7deea;
+        border-radius: 9px;
+      }
+      button {
+        width: 100%;
+        padding: 12px;
+        border: 0;
+        border-radius: 9px;
+        background: #356ae6;
+        color: #fff;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="card">
+      <h1>Automation Tools</h1>
+      <p>Sign in to access your assigned tools.</p>
+      <form method="post">
+        {% csrf_token %}{{ form.as_p }}<button>Sign in</button>
+      </form>
+    </section>
+  </body>
+</html>

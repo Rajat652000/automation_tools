@@ -1,0 +1,222 @@
+{% extends "crm/base.html" %} {% load crm_tags %} {% block content %}
+<style>
+  .att-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+  }
+  .att-table th,
+  .att-table td {
+    padding: 14px;
+    border-bottom: 1px solid #edf0f5;
+    text-align: left;
+  }
+  .choice {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 10px;
+    border: 1px solid #d6ddeb;
+    border-radius: 7px;
+    white-space: nowrap;
+  }
+  .choice input {
+    width: auto !important;
+    margin: 0 !important;
+  }
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin: 18px 0;
+  }
+  @media (max-width: 700px) {
+    .summary {
+      grid-template-columns: 1fr 1fr;
+    }
+    .att-table {
+      font-size: 12px;
+    }
+  }
+</style>
+<div
+  style="
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+  "
+>
+  <div>
+    <h1>Attendance &amp; Payroll</h1>
+    <p class="muted">Attendance members are separate from CRM contacts.</p>
+  </div>
+  <a class="btn" href="/crm/attendance/members/add/">+ Add member</a>
+</div>
+<section class="card">
+  <form
+    style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px"
+    method="get"
+  >
+    <label
+      >Daily date<input
+        type="date"
+        name="date"
+        value="{{ selected_date }}" /></label
+    ><label
+      >Salary from<input
+        type="date"
+        name="date_from"
+        value="{{ date_from }}" /></label
+    ><label
+      >Salary to<input
+        type="date"
+        name="date_to"
+        value="{{ date_to }}" /></label
+    ><button>Load report</button>
+  </form>
+</section>
+<div class="summary">
+  <div class="card">
+    Members
+    <div class="num">{{ total }}</div>
+  </div>
+  <div class="card">
+    Present today
+    <div class="num" style="color: #159570">{{ present }}</div>
+  </div>
+  <div class="card">
+    Absent today
+    <div class="num" style="color: #c2414b">{{ absent }}</div>
+  </div>
+  <div class="card">
+    Late today
+    <div class="num" style="color: #c07a18">{{ late }}</div>
+  </div>
+</div>
+<div class="card">
+  <h2>Mark attendance &mdash; {{ selected_date }}</h2>
+  <form method="post">
+    {% csrf_token %}<input
+      type="hidden"
+      name="date"
+      value="{{ selected_date }}"
+    />
+    <div style="overflow: auto">
+      <table class="att-table">
+        <tr>
+          <th>Member</th>
+          <th>Pay</th>
+          <th>Mark P/A/L</th>
+          <th>Hours</th>
+          <th>Note</th>
+        </tr>
+        {% for member in members %}{% with row=records|get_item:member.id %}
+        <tr>
+          <td>
+            <b>{{ member.name }}</b><br /><span class="muted"
+              >{{ member.role }}</span
+            >
+          </td>
+          <td>{{ member.pay_type }}<br />&#8377; {{ member.pay_rate }}</td>
+          <td>
+            <label class="choice"
+              ><input
+                type="radio"
+                name="status_{{ member.id }}"
+                value="present"
+                {%
+                if
+                row.status=""
+                ="present"
+                %}checked{%
+                endif
+                %}
+              />
+              P</label
+            ><label class="choice"
+              ><input
+                type="radio"
+                name="status_{{ member.id }}"
+                value="absent"
+                {%
+                if
+                row.status=""
+                ="absent"
+                %}checked{%
+                endif
+                %}
+              />
+              A</label
+            ><label class="choice"
+              ><input
+                type="radio"
+                name="status_{{ member.id }}"
+                value="late"
+                {%
+                if
+                row.status=""
+                ="late"
+                %}checked{%
+                endif
+                %}
+              />
+              L</label
+            >
+          </td>
+          <td>
+            <input
+              type="number"
+              step="0.25"
+              min="0"
+              name="hours_{{ member.id }}"
+              value="{{ row.hours|default:member.standard_hours }}"
+            />
+          </td>
+          <td><input name="note_{{ member.id }}" value="{{ row.note }}" /></td>
+        </tr>
+        {% endwith %}{% empty %}
+        <tr>
+          <td colspan="5">No members. Click Add member first.</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+    <br /><button>Save attendance</button>
+  </form>
+</div>
+<div class="card">
+  <h2>Range payroll summary</h2>
+  <div style="overflow: auto">
+    <table class="att-table">
+      <tr>
+        <th>Member</th>
+        <th>Present days</th>
+        <th>Absent days</th>
+        <th>Late days</th>
+        <th>Worked hours</th>
+        <th>Calculated salary</th>
+      </tr>
+      {% for member in members %}{% with stat=range_stats|get_item:member.id %}
+      <tr>
+        <td><b>{{ member.name }}</b></td>
+        <td>{{ stat.present }}</td>
+        <td>{{ stat.absent }}</td>
+        <td>{{ stat.late }}</td>
+        <td>{{ stat.hours }}</td>
+        <td><b>&#8377; {{ salary|get_item:member.id|floatformat:2 }}</b></td>
+      </tr>
+      {% endwith %}{% empty %}
+      <tr>
+        <td colspan="6">No members for this range.</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  <p class="muted">
+    Monthly: (present + late days) &times; monthly salary &divide; 26. Hourly:
+    worked hours &times; hourly rate.
+  </p>
+</div>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "crm/base.html" %} {% block content %}
+<style>
+  .contact-form {
+    max-width: 900px;
+    margin: auto;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 18px;
+  }
+  .field {
+    margin-bottom: 10px;
+  }
+  .field label {
+    display: block;
+    font-weight: 650;
+    margin-top: 8px;
+  }
+  .field input,
+  .field select,
+  .field textarea {
+    margin-top: 6px;
+  }
+  .full {
+    grid-column: 1/-1;
+  }
+  .tag-box {
+    border: 1px solid #d6ddeb;
+    border-radius: 9px;
+    padding: 12px 14px;
+    min-height: 48px;
+    background: #fff;
+  }
+  .tag-box label {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin: 4px 14px 4px 0;
+    font-weight: 400;
+  }
+  .tag-box input {
+    width: auto;
+    margin: 0;
+  }
+  .help {
+    font-size: 12px;
+    color: #718096;
+  }
+  @media (max-width: 700px) {
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+    .full {
+      grid-column: auto;
+    }
+  }
+  html.automation-dark .tag-box {
+    background: #111a2b;
+    border-color: #405270;
+  }
+  html.automation-dark .tag-box label {
+    color: #f1f5f9;
+  }
+</style>
+<div class="card contact-form">
+  <h1>{{ title }}</h1>
+  <p class="muted">
+    Add contact details and organize the contact with a status and tags.
+  </p>
+  <form method="post">
+    {% csrf_token %}{% if form.non_field_errors %}
+    <div class="errorlist">{{ form.non_field_errors }}</div>
+    {% endif %}
+    <div class="form-grid">
+      {% for field in form %}
+      <div
+        class="field {% if field.name == 'notes' or field.name == 'tags' or field.name == 'address' %}full{% endif %}"
+      >
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>{% if
+        field.name == 'tags' %}
+        <div class="tag-box">
+          {% for checkbox in field %}<label
+            >{{ checkbox.tag }} {{ checkbox.choice_label }}</label
+          >{% empty %}<span class="help"
+            >No tags available. Create tags first.</span
+          >{% endfor %}
+        </div>
+        {% else %}{{ field }}{% endif %}{% if field.help_text %}
+        <div class="help">{{ field.help_text }}</div>
+        {% endif %}{% for error in field.errors %}
+        <div class="errorlist">{{ error }}</div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+    <button>Save contact</button>
+    <a class="btn" href="/crm/contacts/">Cancel</a>
+  </form>
+</div>
+{% endblock %}

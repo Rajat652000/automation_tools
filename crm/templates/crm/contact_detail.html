@@ -1,0 +1,31 @@
+{% extends "crm/base.html" %}{% block content %}
+<div class="card">
+  <h1>{{contact.name}}</h1>
+  <p><b>Company:</b> {{contact.company_name}}</p>
+  <p><b>Phone:</b> {{contact.phone}} &nbsp; <b>Email:</b> {{contact.email}}</p>
+  <p>
+    <b>Location:</b> {{contact.city}}, {{contact.state}}, {{contact.country}}
+  </p>
+  <p><b>Status:</b> {{contact.get_status_display}}</p>
+  <p>
+    <b>Tags:</b> {% for tag in contact.tags.all %}<span class="btn"
+      >{{tag.name}}</span
+    >{% empty %}None{% endfor %}
+  </p>
+  <hr />
+  <h2>Activity and notes</h2>
+  {% for note in contact.activity_notes.all %}
+  <p><b>{{note.author}}</b> · {{note.created_at}}<br />{{note.text}}</p>
+  {% empty %}
+  <p class="muted">No notes yet.</p>
+  {% endfor %}
+  <form method="post">
+    {% csrf_token %}<textarea
+      name="note"
+      placeholder="Add a note..."
+      required
+    ></textarea
+    ><button>Add note</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,1 +1,187 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Email Campaigns</title><style>*{box-sizing:border-box}body{margin:0;background:#f5f7fb;color:#172033;font:15px Inter,Segoe UI,Arial}.shell{max-width:980px;margin:0 auto;padding:42px 20px}.hero{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}.eyebrow{color:#356ae6;font-weight:700;text-transform:uppercase;letter-spacing:1px;font-size:12px}.hero h1{margin:7px 0;font-size:32px}.card{background:#fff;border:1px solid #e5eaf2;border-radius:18px;padding:26px;box-shadow:0 12px 35px #1720330b}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.full{grid-column:1/-1}label{display:block;font-weight:650;color:#344054}input,textarea{width:100%;margin-top:8px;padding:13px 14px;border:1px solid #d7deea;border-radius:10px;font:inherit}textarea{min-height:130px;resize:vertical}.hint{font-size:12px;color:#667085;margin-top:6px}.notice{background:#fff8e1;border:1px solid #f4df94;padding:13px;border-radius:10px;margin-bottom:20px}.actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}button{background:#356ae6;border:0;border-radius:10px;color:white;padding:13px 20px;font-weight:700;cursor:pointer}@media(max-width:700px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.hero{display:block}}</style></head><body><main class="shell"><div class="hero"><div><div class="eyebrow">Campaign Studio</div><h1>Email Campaigns</h1><p>Send consent-based batches through your SMTP account.</p></div></div><section class="card">{% if result %}<div class="notice"><strong>{{ result }}</strong></div>{% endif %}<div class="notice">Maximum 50 recipients per batch. Use an App Password or OAuth—not your normal mailbox password.</div><form method="post" enctype="multipart/form-data">{% csrf_token %}<div class="grid"><label>Import contacts JSON<input type="file" name="json_file" accept="application/json"><div class="hint">Expected field: email</div></label><label>Delay between emails<input type="number" name="delay" value="2" min="1" max="60"><div class="hint">Use a provider-safe interval.</div></label><label class="full">Recipients<textarea name="recipients" placeholder="one@email.com&#10;two@email.com" required>{{ imported }}</textarea></label><label class="full">Subject<input name="subject" placeholder="Your subject" required></label><label class="full">Message<textarea name="body" placeholder="Write your message..." required></textarea></label></div><label style="margin-top:18px"><input type="checkbox" name="consent" required style="width:auto;margin-right:8px">I confirm all recipients opted in.</label><div class="actions"><button type="submit">Start email batch</button></div></form></section></main></body></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Email Campaigns</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #f5f7fb;
+        color: #172033;
+        font:
+          15px Inter,
+          Segoe UI,
+          Arial;
+      }
+      .shell {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 42px 20px;
+      }
+      .hero {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+      }
+      .eyebrow {
+        color: #356ae6;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 12px;
+      }
+      .hero h1 {
+        margin: 7px 0;
+        font-size: 32px;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #e5eaf2;
+        border-radius: 18px;
+        padding: 26px;
+        box-shadow: 0 12px 35px #1720330b;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+      }
+      .full {
+        grid-column: 1/-1;
+      }
+      label {
+        display: block;
+        font-weight: 650;
+        color: #344054;
+      }
+      input,
+      textarea {
+        width: 100%;
+        margin-top: 8px;
+        padding: 13px 14px;
+        border: 1px solid #d7deea;
+        border-radius: 10px;
+        font: inherit;
+      }
+      textarea {
+        min-height: 130px;
+        resize: vertical;
+      }
+      .hint {
+        font-size: 12px;
+        color: #667085;
+        margin-top: 6px;
+      }
+      .notice {
+        background: #fff8e1;
+        border: 1px solid #f4df94;
+        padding: 13px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+      }
+      .actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+      }
+      button {
+        background: #356ae6;
+        border: 0;
+        border-radius: 10px;
+        color: white;
+        padding: 13px 20px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      @media (max-width: 700px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .full {
+          grid-column: auto;
+        }
+        .hero {
+          display: block;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="hero">
+        <div>
+          <div class="eyebrow">Campaign Studio</div>
+          <h1>Email Campaigns</h1>
+          <p>Send consent-based batches through your SMTP account.</p>
+        </div>
+      </div>
+      <section class="card">
+        {% if result %}
+        <div class="notice"><strong>{{ result }}</strong></div>
+        {% endif %}
+        <div class="notice">
+          Maximum 50 recipients per batch. Use an App Password or OAuth—not your
+          normal mailbox password.
+        </div>
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="grid">
+            <label
+              >Import contacts JSON<input
+                type="file"
+                name="json_file"
+                accept="application/json"
+              />
+              <div class="hint">Expected field: email</div></label
+            ><label
+              >Delay between emails<input
+                type="number"
+                name="delay"
+                value="2"
+                min="1"
+                max="60"
+              />
+              <div class="hint">Use a provider-safe interval.</div></label
+            ><label class="full"
+              >Recipients<textarea
+                name="recipients"
+                placeholder="one@email.com&#10;two@email.com"
+                required
+              >
+{{ imported }}</textarea
+              ></label
+            ><label class="full"
+              >Subject<input
+                name="subject"
+                placeholder="Your subject"
+                required /></label
+            ><label class="full"
+              >Message<textarea
+                name="body"
+                placeholder="Write your message..."
+                required
+              ></textarea>
+            </label>
+          </div>
+          <label style="margin-top: 18px"
+            ><input
+              type="checkbox"
+              name="consent"
+              required
+              style="width: auto; margin-right: 8px"
+            />I confirm all recipients opted in.</label
+          >
+          <div class="actions">
+            <button type="submit">Start email batch</button>
+          </div>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>

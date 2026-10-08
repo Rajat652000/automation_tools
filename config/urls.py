@@ -21,15 +21,11 @@ from django.urls import path, include
 urlpatterns = [
 
     path("", include("portal.urls")),
+    path("crm/", include("crm.urls")),
 
     path(
         "admin/",
         admin.site.urls
-    ),
-
-    path(
-        "",
-        include("whatsapp_bot.urls")
     ),
 
     path(
@@ -38,7 +34,4 @@ urlpatterns = [
     ),
 
     path("email/", include("email_tool.urls")),
-    path("whatsapp/", include("whatsapp_tool.urls")),
-    path("sms/", include("sms_tool.urls")),
-
 ]
