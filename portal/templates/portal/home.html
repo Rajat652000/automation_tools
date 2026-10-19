@@ -63,19 +63,19 @@
       <div class="grid">
         {% if "email" in tools %}
         <article class="card">
-          <h2>✉ Email</h2>
+          <h2>Email</h2>
           <p class="muted">Consent-based email campaigns.</p>
           <a href="/email/">Open tool</a>
         </article>
         {% endif %}{% if "scraper" in tools %}
         <article class="card">
-          <h2>⌕ Scraper</h2>
+          <h2>Web Scraper</h2>
           <p class="muted">Collect and review business leads.</p>
           <a href="/scraper/">Open tool</a>
         </article>
         {% endif %}{% if "crm" in tools %}
         <article class="card">
-          <h2>▦ CRM</h2>
+          <h2>CRM</h2>
           <p class="muted">Contacts, tags and customer segments.</p>
           <a href="/crm/">Open tool</a>
         </article>
@@ -83,6 +83,13 @@
         <article class="card">
           <h2>No tools assigned</h2>
           <p class="muted">Ask an administrator to grant access.</p>
+        </article>
+        {% endif %}{% if request.user.is_superuser %}
+        <article class="card">
+          <h2>Full website backup</h2>
+          <p class="muted">Download users and their CRM, scraper, email, and portal data as a migration-ready archive.</p>
+          <p class="muted"><strong>Keep the ZIP secure:</strong> it includes password hashes and configured SMTP credentials. Environment/API secrets are excluded.</p>
+          <a href="{% url 'download_backup' %}">Download full backup</a>
         </article>
         {% endif %}
       </div>

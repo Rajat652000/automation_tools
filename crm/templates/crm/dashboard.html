@@ -159,6 +159,7 @@
     ><a class="btn" href="/crm/contacts/add/">+ Add contact</a>
   </div>
 </div>
+
 {% if not configuration or 'contacts' in configuration.modules %}
 <div class="stat-grid">
   <div class="card stat-card">
@@ -182,7 +183,7 @@
   <div class="status-title">
     <div>
       <h2>Contact pipeline</h2>
-      <p class="muted">Change a contact’s status directly from its row.</p>
+      <p class="muted">Update contact status from this dashboard.</p>
     </div>
   </div>
   <div class="status-grid">
@@ -199,12 +200,7 @@
             ><b>{{ contact.name }}</b></a
           >
           <div class="contact-meta">
-            {% if contact.company_name %}{{ contact.company_name }}{% endif %}{%
-            if contact.email %}{% if contact.company_name %} · {% endif %}{{
-            contact.email }}{% endif %}
-          </div>
-        </div>
-        <form
+            {{ contact.company_name }}{% if contact.email %} | {{ contact.email }}{% endif %}</div></div><form
           class="status-form"
           method="post"
           action="/crm/contacts/{{ contact.id }}/status/"
@@ -221,13 +217,7 @@
             {% for value,label in statuses %}
             <option
               value="{{ value }}"
-              {%
-              if
-              contact.status=""
-              ="value"
-              %}selected{%
-              endif
-              %}
+              {% if contact.status == value %}selected{% endif %}
             >
               {{ label }}
             </option>
@@ -244,15 +234,9 @@
 </div>
 {% endif %}
 <div class="card quick-actions">
-  <a class="btn" href="/crm/customize/">Customize CRM</a>{% if configuration and
-  'attendance' in configuration.modules %}<a class="btn" href="/crm/attendance/"
-    >Open attendance</a
-  >{% endif %}{% if configuration and 'transactions' in configuration.modules
-  %}<a class="btn" href="/crm/transactions/">Sales &amp; Purchases</a>{% endif
-  %}{% if configuration and 'import_export' in configuration.modules %}<a
-    class="btn"
-    href="/crm/import/csv/"
-    >Import</a
-  ><a class="btn" href="/crm/export/csv/">Export</a>{% endif %}
+  <a class="btn" href="/crm/customize/">Customize CRM</a>
+  {% if configuration and 'attendance' in configuration.modules %}<a class="btn" href="/crm/attendance/">Open attendance</a>{% endif %}
+  {% if configuration and 'transactions' in configuration.modules %}<a class="btn" href="/crm/transactions/">Sales &amp; Purchases</a>{% endif %}
+  {% if configuration and 'import_export' in configuration.modules %}<a class="btn" href="/crm/import/csv/">Import</a><a class="btn" href="/crm/export/csv/">Export</a>{% endif %}
 </div>
 {% endblock %}

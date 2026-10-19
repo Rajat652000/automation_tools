@@ -212,7 +212,9 @@ def transactions(request):
     if month:
         rows = [row for row in rows if row.date.strftime("%Y-%m") == month]
     if request.method == "POST":
-        InventoryTransaction.objects.create(owner=request.user, kind=request.POST["kind"], item_name=request.POST["item_name"], quantity=request.POST["quantity"], unit_price=request.POST["unit_price"], date=request.POST["date"], contact_id=request.POST.get("contact") or None, note=request.POST.get("note", ""))
+        contact_id = request.POST.get("contact") or None
+        contact = get_object_or_404(Contact, id=contact_id, owner=request.user) if contact_id else None
+        InventoryTransaction.objects.create(owner=request.user, kind=request.POST["kind"], item_name=request.POST["item_name"], quantity=request.POST["quantity"], unit_price=request.POST["unit_price"], date=request.POST["date"], contact=contact, note=request.POST.get("note", ""))
         messages.success(request, "Transaction saved."); return redirect("crm:transactions")
     sales = sum(row.total for row in rows if row.kind == "sale"); purchases = sum(row.total for row in rows if row.kind == "purchase")
     by_date = {}
@@ -225,5 +227,7 @@ def transactions(request):
 def transaction_edit(request, transaction_id):
     transaction = get_object_or_404(InventoryTransaction, id=transaction_id, owner=request.user)
     if request.method == "POST":
-        transaction.kind = request.POST["kind"]; transaction.item_name = request.POST["item_name"]; transaction.quantity = request.POST["quantity"]; transaction.unit_price = request.POST["unit_price"]; transaction.date = request.POST["date"]; transaction.contact_id = request.POST.get("contact") or None; transaction.note = request.POST.get("note", ""); transaction.save(); messages.success(request, "Transaction updated."); return redirect("crm:transactions")
+        contact_id = request.POST.get("contact") or None
+        contact = get_object_or_404(Contact, id=contact_id, owner=request.user) if contact_id else None
+        transaction.kind = request.POST["kind"]; transaction.item_name = request.POST["item_name"]; transaction.quantity = request.POST["quantity"]; transaction.unit_price = request.POST["unit_price"]; transaction.date = request.POST["date"]; transaction.contact = contact; transaction.note = request.POST.get("note", ""); transaction.save(); messages.success(request, "Transaction updated."); return redirect("crm:transactions")
     return render(request, "crm/transaction_edit.html", {"transaction": transaction, "contacts": Contact.objects.filter(owner=request.user)})

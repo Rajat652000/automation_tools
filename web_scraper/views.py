@@ -652,6 +652,8 @@ def start_scraping(request):
 
     JOBS[job_id] = {
 
+        "owner_id": request.user.id,
+
         "status": "starting",
 
         "stage": (
@@ -734,7 +736,7 @@ def scraping_status(
     )
 
 
-    if not job:
+    if not job or job.get("owner_id") != request.user.id:
 
         return JsonResponse(
 

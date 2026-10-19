@@ -8,6 +8,14 @@ class ToolRouteMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        # The Django admin exposes cross-user records and credentials, so keep
+        # it restricted to superusers rather than any account marked staff.
+        if request.path.startswith("/admin/"):
+            if not request.user.is_authenticated:
+                return redirect("/login/")
+            if not request.user.is_superuser:
+                from django.http import HttpResponseForbidden
+                return HttpResponseForbidden("Administrator access is restricted to superusers.")
         if request.path.startswith("/scraper/"):
             if not request.user.is_authenticated:
                 return redirect("/login/")

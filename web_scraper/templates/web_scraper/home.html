@@ -567,17 +567,7 @@
                 <td class="business-name">{{ lead.business_name }}</td>
 
                 <td class="address">
-                  {% if lead.location %} {{ lead.location }} {% else %} — {%
-                  endif %}
-                </td>
-
-                <td>
-                  {% if lead.category %} {{ lead.category }} {% else %} — {%
-                  endif %}
-                </td>
-
-                <td>
-                  {% if lead.website and lead.website != "X" %}
+                  {% if lead.location %}{{ lead.location }}{% else %}—{% endif %}</td><td>{% if lead.category %}{{ lead.category }}{% else %}—{% endif %}</td><td>{% if lead.website and lead.website != "X" %}
 
                   <a
                     href="{{ lead.website }}"

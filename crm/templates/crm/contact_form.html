@@ -77,14 +77,9 @@
       <div
         class="field {% if field.name == 'notes' or field.name == 'tags' or field.name == 'address' %}full{% endif %}"
       >
-        <label for="{{ field.id_for_label }}">{{ field.label }}</label>{% if
-        field.name == 'tags' %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>{% if field.name == 'tags' %}
         <div class="tag-box">
-          {% for checkbox in field %}<label
-            >{{ checkbox.tag }} {{ checkbox.choice_label }}</label
-          >{% empty %}<span class="help"
-            >No tags available. Create tags first.</span
-          >{% endfor %}
+          {% for checkbox in field %}<label>{{ checkbox.tag }} {{ checkbox.choice_label }}</label>{% endfor %}
         </div>
         {% else %}{{ field }}{% endif %}{% if field.help_text %}
         <div class="help">{{ field.help_text }}</div>

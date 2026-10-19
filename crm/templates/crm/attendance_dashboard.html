@@ -126,13 +126,7 @@
                 type="radio"
                 name="status_{{ member.id }}"
                 value="present"
-                {%
-                if
-                row.status=""
-                ="present"
-                %}checked{%
-                endif
-                %}
+                {% if row.status == "present" %}checked{% endif %}
               />
               P</label
             ><label class="choice"
@@ -140,13 +134,7 @@
                 type="radio"
                 name="status_{{ member.id }}"
                 value="absent"
-                {%
-                if
-                row.status=""
-                ="absent"
-                %}checked{%
-                endif
-                %}
+                {% if row.status == "absent" %}checked{% endif %}
               />
               A</label
             ><label class="choice"
@@ -154,13 +142,7 @@
                 type="radio"
                 name="status_{{ member.id }}"
                 value="late"
-                {%
-                if
-                row.status=""
-                ="late"
-                %}checked{%
-                endif
-                %}
+                {% if row.status == "late" %}checked{% endif %}
               />
               L</label
             >
@@ -176,11 +158,10 @@
           </td>
           <td><input name="note_{{ member.id }}" value="{{ row.note }}" /></td>
         </tr>
-        {% endwith %}{% empty %}
+        {% endwith %}{% endfor %}{% if not members %}
         <tr>
           <td colspan="5">No members. Click Add member first.</td>
-        </tr>
-        {% endfor %}
+        </tr>{% endif %}
       </table>
     </div>
     <br /><button>Save attendance</button>
@@ -207,11 +188,10 @@
         <td>{{ stat.hours }}</td>
         <td><b>&#8377; {{ salary|get_item:member.id|floatformat:2 }}</b></td>
       </tr>
-      {% endwith %}{% empty %}
+      {% endwith %}{% endfor %}{% if not members %}
       <tr>
         <td colspan="6">No members for this range.</td>
-      </tr>
-      {% endfor %}
+      </tr>{% endif %}
     </table>
   </div>
   <p class="muted">

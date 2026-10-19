@@ -78,27 +78,17 @@
   </head>
   <body>
     <nav class="nav">
-      <b>CRM</b><a href="/crm/">Dashboard</a
-      ><a href="/crm/customize/">Customize CRM</a>{% if not crm_configuration or
-      'contacts' in crm_configuration.modules %}<a href="/crm/contacts/"
-        >Contacts</a
-      >{% endif %}{% if not crm_configuration or 'tags' in
-      crm_configuration.modules %}<a href="/crm/tags/">Tags</a>{% endif %}{% if
-      not crm_configuration or 'segments' in crm_configuration.modules %}<a
-        href="/crm/segments/"
-        >Segments</a
-      >{% endif %}{% if not crm_configuration or 'attendance' in
-      crm_configuration.modules %}<a href="/crm/attendance/">Attendance</a
-      ><a href="/crm/attendance/members/add/">+ Add member</a>{% endif %}{% if
-      not crm_configuration or 'transactions' in crm_configuration.modules %}<a
-        href="/crm/transactions/"
-        >Sales & Purchases</a
-      >{% endif %}{% if not crm_configuration or 'import_export' in
-      crm_configuration.modules %}<a href="/crm/import/csv/">Import</a
-      ><a href="/crm/export/csv/">Export</a>{% endif %}<a href="/">All tools</a
-      ><a href="/logout/">Logout</a>
-    </nav>
-    <main class="wrap">
+      <b>CRM</b>
+      <a href="/crm/">Dashboard</a>
+      <a href="/crm/customize/">Customize CRM</a>
+      {% if not crm_configuration or 'contacts' in crm_configuration.modules %}<a href="/crm/contacts/">Contacts</a>{% endif %}
+      {% if not crm_configuration or 'tags' in crm_configuration.modules %}<a href="/crm/tags/">Tags</a>{% endif %}
+      {% if not crm_configuration or 'segments' in crm_configuration.modules %}<a href="/crm/segments/">Segments</a>{% endif %}
+      {% if not crm_configuration or 'attendance' in crm_configuration.modules %}<a href="/crm/attendance/">Attendance</a><a href="/crm/attendance/members/add/">+ Add member</a>{% endif %}
+      {% if not crm_configuration or 'transactions' in crm_configuration.modules %}<a href="/crm/transactions/">Sales &amp; Purchases</a>{% endif %}
+      {% if not crm_configuration or 'import_export' in crm_configuration.modules %}<a href="/crm/import/csv/">Import</a><a href="/crm/export/csv/">Export</a>{% endif %}
+      <a href="/logout/">Logout</a>
+    </nav>   <main class="wrap">
       {% for message in messages %}
       <p>{{message}}</p>
       {% endfor %}{% block content %}{% endblock %}
